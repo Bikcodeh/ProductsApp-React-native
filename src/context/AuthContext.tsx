@@ -43,14 +43,24 @@ export const AuthProvider = ( { children }: any) => {
                     user: data.usuario
                 }
             })
-        }catch(error) {
-            const err = error as AxiosError;
-            console.log(err.response?.data);
+        } catch(error) {
+            //const err = error as AxiosError;
+            const err = error as any;
+            //console.log(err.response?.data);
+            console.log(err.response.data.msg);
+            dispatch({
+                type: 'addError',
+                payload: err.response.data.msg || 'Check your information'
+            })
         }      
     };
     const signUp = () => {};
     const logOut = () => {};
-    const removeError = () => {};
+    const removeError = () => {
+        dispatch({
+            type: 'removeError'
+        })
+    };
 
     return (
         <AuthContext.Provider
