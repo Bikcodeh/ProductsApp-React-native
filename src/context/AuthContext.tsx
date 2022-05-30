@@ -51,6 +51,7 @@ export const AuthProvider = ({ children }: any) => {
                 user: resp.data.usuario
             }
         })
+        await AsyncStorage.setItem('token', resp.data.token);
     }
 
 
