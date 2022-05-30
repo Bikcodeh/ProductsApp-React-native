@@ -1,14 +1,18 @@
 import { StackScreenProps } from '@react-navigation/stack'
-import React from 'react'
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useContext } from 'react'
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { WhiteLogo } from '../components/WhiteLogo'
 import { useForm } from '../hooks/useForm'
 import { loginStyles } from '../theme/LoginTheme'
+import { AuthContext } from './../context/AuthContext';
+import { useEffect } from 'react';
 
 interface Props extends StackScreenProps<any, any> {}
 
 
 export const RegisterScreen = ({ navigation }: Props) => {
+
+  const { signUp, errorMessage, removeError } = useContext(AuthContext);
 
   const { email, password, name, onChange } = useForm({
     name: '',
@@ -18,8 +22,25 @@ export const RegisterScreen = ({ navigation }: Props) => {
 
   const onRegister = () => {
       console.log({ email, password })
+      signUp({
+        correo: email,
+        password,
+        nombre: name
+      })
       Keyboard.dismiss();
   }
+
+  useEffect(() => {
+    if(errorMessage.length == 0) return;
+
+    Alert.alert("Error", errorMessage, [
+      {
+        text: "OK",
+        onPress: removeError
+      }
+    ])
+  }, [errorMessage])
+  
 
   return (
     <>
@@ -47,8 +68,8 @@ export const RegisterScreen = ({ navigation }: Props) => {
               selectionColor="white"
               autoCapitalize="words"
               autoCorrect={false}
-              onChangeText={(value) => onChange(value, 'email')}
-              value={email}
+              onChangeText={(value) => onChange(value, 'name')}
+              value={name}
               onSubmitEditing={onRegister}
             />
             <Text style={loginStyles.label}>Email</Text>
