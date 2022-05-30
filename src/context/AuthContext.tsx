@@ -32,12 +32,17 @@ export const AuthProvider = ( { children }: any) => {
     const signIn = async ({ correo, password } : LoginData ) => {
         try {
 
-            const resp = await cafeApi.post<LoginResponse>('/api/auth/login',{
+            const { data } = await cafeApi.post<LoginResponse>('/api/auth/login',{
                 correo,
                 password
             })
-
-            console.log(resp.data);
+            dispatch({
+                type: 'signUp',
+                payload: {
+                    token: data.token,
+                    user: data.usuario
+                }
+            })
         }catch(error) {
             const err = error as AxiosError;
             console.log(err.response?.data);
