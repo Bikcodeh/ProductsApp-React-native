@@ -1,9 +1,9 @@
-import React, { createContext, useReducer } from "react";
+import React, { createContext, useEffect, useReducer } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Usuario } from "../interfaces/AppInterfaces";
 import { authReducer, AuthState } from "./authReducer";
 import cafeApi from './../api/cafeApi';
 import { LoginResponse, LoginData } from './../interfaces/AppInterfaces';
-import { AxiosError } from "axios";
 
 type AuthContextProps = {
     errorMessage: string;
@@ -25,14 +25,39 @@ const authInitialState: AuthState = {
 
 export const AuthContext = createContext({} as AuthContextProps);
 
-export const AuthProvider = ( { children }: any) => {
+export const AuthProvider = ({ children }: any) => {
 
     const [state, dispatch] = useReducer(authReducer, authInitialState)
 
-    const signIn = async ({ correo, password } : LoginData ) => {
+    useEffect(() => {
+        checkToken();
+    }, [])
+
+    const checkToken = async () => {
+        const token = await AsyncStorage.getItem('token');
+
+        if (!token) return dispatch({ type: 'notAuthenticated'});
+
+        const resp = await cafeApi.get('/api/auth')
+
+        if (resp.status !== 200) {
+            return dispatch({ type: 'notAuthenticated'});
+        }
+
+        dispatch({
+            type: 'signUp',
+            payload: {
+                token: resp.data.token,
+                user: resp.data.usuario
+            }
+        })
+    }
+
+
+    const signIn = async ({ correo, password }: LoginData) => {
         try {
 
-            const { data } = await cafeApi.post<LoginResponse>('/api/auth/login',{
+            const { data } = await cafeApi.post<LoginResponse>('/api/auth/login', {
                 correo,
                 password
             })
@@ -42,8 +67,9 @@ export const AuthProvider = ( { children }: any) => {
                     token: data.token,
                     user: data.usuario
                 }
-            })
-        } catch(error) {
+            });
+            await AsyncStorage.setItem('token', data.token)
+        } catch (error) {
             //const err = error as AxiosError;
             const err = error as any;
             //console.log(err.response?.data);
@@ -52,10 +78,10 @@ export const AuthProvider = ( { children }: any) => {
                 type: 'addError',
                 payload: err.response.data.msg || 'Check your information'
             })
-        }      
+        }
     };
-    const signUp = () => {};
-    const logOut = () => {};
+    const signUp = () => { };
+    const logOut = () => { };
     const removeError = () => {
         dispatch({
             type: 'removeError'
@@ -72,7 +98,7 @@ export const AuthProvider = ( { children }: any) => {
                 removeError,
             }}
         >
-            { children }
+            {children}
         </AuthContext.Provider>
     )
 }
