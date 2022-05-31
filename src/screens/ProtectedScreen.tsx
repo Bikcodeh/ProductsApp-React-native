@@ -1,5 +1,6 @@
 import React, { useContext } from 'react'
-import { Button, Text, View } from 'react-native'
+import { Button } from '@react-native-material/core';
+import { Text, View } from 'react-native'
 import { StyleSheet } from 'react-native';
 import { AuthContext } from './../context/AuthContext';
 

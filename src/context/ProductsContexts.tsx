@@ -1,23 +1,32 @@
 import React, { createContext, useState } from 'react';
 import { Producto } from '../interfaces/AppInterfaces';
+import { useEffect } from 'react';
+import cafeApi from './../api/cafeApi';
+import { ProductsResponse } from './../interfaces/AppInterfaces';
 
 type ProductsContextsProps = {
     products: Producto[];
-    loadProducts: ( categoryId: string, productName: string) => Promise<void>;
+    loadProducts: () => Promise<void>;
     updateProduct: ( categoryId: string, productName: string, productId: string) => Promise<void>;
     deleteProduct: ( id: string) => Promise<void>;
     loadProductById: ( id: string) => Promise<Producto>;
     uploadImage: ( data: any, id: string) => Promise<void>;
 }
 
-const ProductsContexts = createContext({} as ProductsContextsProps);
+export const ProductsContexts = createContext({} as ProductsContextsProps);
 
 export const ProductsProvider = ({ children }: any) => {
 
     const [products, setProducts] = useState<Producto[]>([]);
 
-    const loadProducts = async ( categoryId: string, productName: string) => {
-        
+    useEffect(() => {
+      loadProducts();
+    }, [])
+    
+
+    const loadProducts = async () => {
+        const resp = await cafeApi.get<ProductsResponse>('/api/productos/?limite=50');
+        setProducts([...resp.data.productos]);
     }
 
     const updateProduct = async ( categoryId: string, productName: string, productId: string) => {

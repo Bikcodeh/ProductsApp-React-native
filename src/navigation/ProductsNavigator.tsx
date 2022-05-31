@@ -26,7 +26,7 @@ export const ProductsNavigator = () => {
       <Stack.Screen
         name="ProductsScreen"
         component={ ProductsScreen }
-        options= {{ title: "Products" }}
+        options= {{ title: "Available Products" }}
       />
       <Stack.Screen
         name="ProductScreen"
