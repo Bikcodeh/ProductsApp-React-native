@@ -4,10 +4,30 @@ import { ProductsContexts } from './../context/ProductsContexts';
 import { StyleSheet } from 'react-native';
 import { Stack, Surface } from '@react-native-material/core';
 import { capitalizeFirstLetter } from '../helpers/strings';
+import { StackScreenProps } from '@react-navigation/stack';
+import { ProductsStackParams } from '../navigation/ProductsNavigator';
+import { useEffect } from 'react';
 
-export const ProductsScreen = () => {
+interface Props extends StackScreenProps<ProductsStackParams, 'ProductsScreen'> { }
+
+export const ProductsScreen = ({ navigation }: Props) => {
 
   const { products } = useContext(ProductsContexts);
+
+  
+  useEffect(() => {
+      navigation.setOptions({
+        headerRight: () => (
+          <TouchableOpacity
+            activeOpacity={ 0.8 }
+            style={{ marginRight: 16 }}
+            onPress={ () => navigation.navigate('ProductScreen', {})}
+          >
+            <Text>Add</Text>
+          </TouchableOpacity>
+        )
+      })
+  }, []);
 
   return (
     <View style={{ flex: 1, marginHorizontal: 16 }}>
@@ -23,7 +43,10 @@ export const ProductsScreen = () => {
             >
               <TouchableOpacity
                 activeOpacity={0.4}
-                onPress={() => console.log("data")}
+                onPress={() => navigation.navigate('ProductScreen', {
+                  id: item._id,
+                  name: item.nombre
+                })}
               >
                 <Text style={styles.productName}> {capitalizeFirstLetter(item.nombre.toLowerCase())}</Text>
               </TouchableOpacity>
