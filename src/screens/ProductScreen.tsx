@@ -1,29 +1,53 @@
 import React from 'react'
-import { useEffect, useState } from 'react';
+import { useEffect, useContext } from 'react';
 import { StackScreenProps } from '@react-navigation/stack';
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Picker } from '@react-native-picker/picker';
 
 import { ProductsStackParams } from '../navigation/ProductsNavigator';
 import { Subheading, TextInput, Button } from 'react-native-paper';
 import { useCategories } from './../hooks/useCategories';
 import { Categoria } from '../interfaces/AppInterfaces';
+import { useForm } from './../hooks/useForm';
+import { ProductsContexts } from '../context/ProductsContexts';
 
 interface Props extends StackScreenProps<ProductsStackParams, 'ProductScreen'> { }
 
 export const ProductScreen = ({ route, navigation }: Props) => {
 
   const { id = '', name = '' } = route.params;
-  const [data, setData] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<Categoria>();
-  const {categories, isLoading} = useCategories();
+  const { _id, categoryId, productName, img, onChange, setFormValue } = useForm({
+    _id: id,
+    categoryId: '',
+    productName: name,
+    img: ''
+  });
+
+  const { categories, isLoading } = useCategories();
+  const { loadProductById } = useContext(ProductsContexts);
 
   useEffect(() => {
     navigation.setOptions({
       headerTitle: name ? name : 'Add Product'
     })
-    setData(name)
   }, []);
+
+  useEffect(() => {
+    loadProduct()
+  }, [])
+
+
+  const loadProduct = async () => {
+    if (id.length === 0) return;
+
+    const product = await loadProductById(id);
+    setFormValue({
+      _id: id,
+      categoryId: product._id,
+      img: product.img || '',
+      productName
+    })
+  }
 
 
   return (
@@ -32,20 +56,18 @@ export const ProductScreen = ({ route, navigation }: Props) => {
         <TextInput
           label="Product name"
           mode='outlined'
-          value={data}
-          onChangeText={text => setData(text)}
+          value={productName}
+          onChangeText={text => onChange(text, "productName")}
         />
         <Subheading style={{ marginTop: 16 }}>
           Category:
         </Subheading>
         <Picker
-          selectedValue={selectedCategory}
-          onValueChange={(itemValue, itemIndex) =>
-            setSelectedCategory(itemValue)
-          }>
-            {
-              categories.map(category => (<Picker.Item key={category._id} label={category.nombre} value={category._id} />))
-            }
+          selectedValue={categoryId}
+          onValueChange={(itemValue) => onChange(itemValue, 'categoryId')}>
+          {
+            categories.map(category => (<Picker.Item key={category._id} label={category.nombre} value={category._id} />))
+          }
         </Picker>
         <Button mode="contained" onPress={() => console.log('Pressed')}>
           Save
@@ -58,6 +80,16 @@ export const ProductScreen = ({ route, navigation }: Props) => {
             Save
           </Button>
         </View>
+        {
+          (img.length > 0) && (
+            <Image
+              source={{
+                uri: img
+              }}
+              style={{ width: '100%', height: 200, marginTop: 16 }}
+            />
+          )
+        }
       </ScrollView>
     </View>
   )

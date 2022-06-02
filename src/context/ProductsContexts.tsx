@@ -1,8 +1,7 @@
 import React, { createContext, useState } from 'react';
-import { Producto } from '../interfaces/AppInterfaces';
 import { useEffect } from 'react';
 import cafeApi from './../api/cafeApi';
-import { ProductsResponse } from './../interfaces/AppInterfaces';
+import { ProductsResponse, Producto } from './../interfaces/AppInterfaces';
 
 type ProductsContextsProps = {
     products: Producto[];
@@ -37,8 +36,9 @@ export const ProductsProvider = ({ children }: any) => {
 
     }
 
-    const loadProductById = async ( id: string) => {
-        throw Error("error")
+    const loadProductById = async ( id: string): Promise<Producto> => {
+        const resp = await cafeApi.get<Producto>(`/api/productos/${id}`);
+        return resp.data;
     }
 
     const uploadImage = async ( data: any, id: string) => {
