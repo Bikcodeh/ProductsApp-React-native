@@ -71,8 +71,7 @@ export const ProductsProvider = ({ children }: any) => {
             updateProduct,
             deleteProduct,
             loadProductById,
-            uploadImage,
-
+            uploadImage
         }}
         >
             {children}
