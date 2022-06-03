@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEffect, useContext, useState } from 'react';
 import { StackScreenProps } from '@react-navigation/stack';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from 'react-native'
 import { Picker } from '@react-native-picker/picker';
 
 import { ProductsStackParams } from '../navigation/ProductsNavigator';
@@ -16,6 +16,7 @@ interface Props extends StackScreenProps<ProductsStackParams, 'ProductScreen'> {
 export const ProductScreen = ({ route, navigation }: Props) => {
 
   const { id = '', name = '' } = route.params;
+  console.log('ID PARAM', id);
   const { _id, categoryId, productName, img, onChange, setFormValue } = useForm({
     _id: id,
     categoryId: '',
@@ -25,7 +26,7 @@ export const ProductScreen = ({ route, navigation }: Props) => {
   const [tempUri, setTempUri] = useState<string>();
 
   const { categories, isLoading } = useCategories();
-  const { loadProductById, addProduct, updateProduct } = useContext(ProductsContexts);
+  const { loadProductById, addProduct, updateProduct, uploadImage } = useContext(ProductsContexts);
 
   useEffect(() => {
     navigation.setOptions({
@@ -35,7 +36,6 @@ export const ProductScreen = ({ route, navigation }: Props) => {
 
   useEffect(() => {
     loadProduct()
-    console.log({ categories });
   }, [])
 
 
@@ -70,7 +70,8 @@ export const ProductScreen = ({ route, navigation }: Props) => {
       if (resp.didCancel) return;
       if (!resp.assets) return;
       const tempUri = resp.assets[0].uri || undefined
-      setTempUri(tempUri)
+      setTempUri(tempUri);
+      uploadImage(resp, _id);
     })
   }
 
@@ -86,13 +87,15 @@ export const ProductScreen = ({ route, navigation }: Props) => {
         <Subheading style={{ marginTop: 16 }}>
           Category:
         </Subheading>
-        <Picker
-          selectedValue={categoryId}
-          onValueChange={(itemValue) => onChange(itemValue, 'categoryId')}>
-          {
-            categories.map(category => (<Picker.Item key={category._id} label={category.nombre} value={category._id} />))
-          }
-        </Picker>
+        {
+          (isLoading) ? (<View><ActivityIndicator size={50} color="black" /></View>) : (<Picker
+            selectedValue={categoryId}
+            onValueChange={(itemValue) => onChange(itemValue, 'categoryId')}>
+            {
+              categories.map(category => (<Picker.Item key={category._id} label={category.nombre} value={category._id} />))
+            }
+          </Picker>)
+        }
         <Button mode="contained" onPress={saveOrUpdate}>
           Save
         </Button>

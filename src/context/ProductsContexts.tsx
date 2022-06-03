@@ -1,5 +1,7 @@
+import { AxiosError } from 'axios';
 import React, { createContext, useState } from 'react';
 import { useEffect } from 'react';
+import { ImagePickerResponse } from 'react-native-image-picker';
 import cafeApi from './../api/cafeApi';
 import { ProductsResponse, Producto } from './../interfaces/AppInterfaces';
 
@@ -10,7 +12,7 @@ type ProductsContextsProps = {
     updateProduct: (categoryId: string, productName: string, productId: string) => Promise<void>;
     deleteProduct: (id: string) => Promise<void>;
     loadProductById: (id: string) => Promise<Producto>;
-    uploadImage: (data: any, id: string) => Promise<void>;
+    uploadImage: (data: ImagePickerResponse, id: string) => Promise<void>;
 }
 
 export const ProductsContexts = createContext({} as ProductsContextsProps);
@@ -59,8 +61,26 @@ export const ProductsProvider = ({ children }: any) => {
         return resp.data;
     }
 
-    const uploadImage = async (data: any, id: string) => {
+    const uploadImage = async (data: ImagePickerResponse, id: string) => {
+        const fileToUpload = {
+            uri: data.assets![0].uri!,
+            type: data.assets![0].type!,
+            name: data.assets![0].fileName!
+        }
+        const formData = new FormData();
+        formData.append('archivo', fileToUpload);
 
+        try {
+           const resp = await cafeApi.put(`/api/uploads/productos/${id}`, formData, {
+            headers: {
+                'content-type': 'multipart/form-data',
+            }
+        });
+           console.log(resp);
+        } catch (error) {
+            const err = error as AxiosError
+            console.log("Error uplading image ", err.response?.data);
+        }
     }
 
     return (
