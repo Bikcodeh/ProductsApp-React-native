@@ -1,5 +1,5 @@
 import React from 'react'
-import { useEffect, useContext } from 'react';
+import { useEffect, useContext, useState } from 'react';
 import { StackScreenProps } from '@react-navigation/stack';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Picker } from '@react-native-picker/picker';
@@ -9,6 +9,7 @@ import { Subheading, TextInput, Button } from 'react-native-paper';
 import { useCategories } from './../hooks/useCategories';
 import { useForm } from './../hooks/useForm';
 import { ProductsContexts } from '../context/ProductsContexts';
+import { launchCamera } from 'react-native-image-picker';
 
 interface Props extends StackScreenProps<ProductsStackParams, 'ProductScreen'> { }
 
@@ -21,6 +22,7 @@ export const ProductScreen = ({ route, navigation }: Props) => {
     productName: name,
     img: ''
   });
+  const [tempUri, setTempUri] = useState<string>();
 
   const { categories, isLoading } = useCategories();
   const { loadProductById, addProduct, updateProduct } = useContext(ProductsContexts);
@@ -60,6 +62,17 @@ export const ProductScreen = ({ route, navigation }: Props) => {
     }
   }
 
+  const takePhoto = () => {
+    launchCamera({
+      mediaType: 'photo',
+      quality: 0.5,
+    }, (resp) => {
+      if (resp.didCancel) return;
+      if (!resp.assets) return;
+      const tempUri = resp.assets[0].uri || undefined
+      setTempUri(tempUri)
+    })
+  }
 
   return (
     <View style={styles.container}>
@@ -86,7 +99,7 @@ export const ProductScreen = ({ route, navigation }: Props) => {
         {
           (_id.length > 0) && (
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 16, alignItems: 'center' }}>
-              <Button style={{ marginEnd: 8 }} mode="contained" onPress={() => console.log('Pressed')}>
+              <Button style={{ marginEnd: 8 }} mode="contained" onPress={takePhoto}>
                 Camera
               </Button>
               <Button style={{ marginStart: 8 }} mode="contained" onPress={() => console.log('Pressed')}>
@@ -96,10 +109,20 @@ export const ProductScreen = ({ route, navigation }: Props) => {
           )
         }
         {
-          (img.length > 0) && (
+          (img.length > 0 && !tempUri) && (
             <Image
               source={{
                 uri: img
+              }}
+              style={{ width: '100%', height: 200, marginTop: 16 }}
+            />
+          )
+        }
+        {
+          (tempUri) && (
+            <Image
+              source={{
+                uri: tempUri
               }}
               style={{ width: '100%', height: 200, marginTop: 16 }}
             />
