@@ -7,7 +7,6 @@ import { Picker } from '@react-native-picker/picker';
 import { ProductsStackParams } from '../navigation/ProductsNavigator';
 import { Subheading, TextInput, Button } from 'react-native-paper';
 import { useCategories } from './../hooks/useCategories';
-import { Categoria } from '../interfaces/AppInterfaces';
 import { useForm } from './../hooks/useForm';
 import { ProductsContexts } from '../context/ProductsContexts';
 
@@ -24,16 +23,17 @@ export const ProductScreen = ({ route, navigation }: Props) => {
   });
 
   const { categories, isLoading } = useCategories();
-  const { loadProductById } = useContext(ProductsContexts);
+  const { loadProductById, addProduct, updateProduct } = useContext(ProductsContexts);
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: name ? name : 'Add Product'
+      headerTitle: name ? 'Product Detail' : 'Add Product'
     })
   }, []);
 
   useEffect(() => {
     loadProduct()
+    console.log({ categories });
   }, [])
 
 
@@ -41,12 +41,23 @@ export const ProductScreen = ({ route, navigation }: Props) => {
     if (id.length === 0) return;
 
     const product = await loadProductById(id);
+
     setFormValue({
       _id: id,
-      categoryId: product._id,
+      categoryId: product.categoria._id,
       img: product.img || '',
       productName
     })
+  }
+
+  const saveOrUpdate = async () => {
+    if (id.length > 0)
+      updateProduct(categoryId, productName, id)
+    else {
+      const category = categoryId || categories[0]._id
+      const newProduct = await addProduct(category, productName);
+      onChange(newProduct._id, '_id')
+    }
   }
 
 
@@ -69,17 +80,21 @@ export const ProductScreen = ({ route, navigation }: Props) => {
             categories.map(category => (<Picker.Item key={category._id} label={category.nombre} value={category._id} />))
           }
         </Picker>
-        <Button mode="contained" onPress={() => console.log('Pressed')}>
+        <Button mode="contained" onPress={saveOrUpdate}>
           Save
         </Button>
-        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 16, alignItems: 'center' }}>
-          <Button style={{ marginEnd: 8 }} mode="contained" onPress={() => console.log('Pressed')}>
-            Save
-          </Button>
-          <Button style={{ marginStart: 8 }} mode="contained" onPress={() => console.log('Pressed')}>
-            Save
-          </Button>
-        </View>
+        {
+          (_id.length > 0) && (
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 16, alignItems: 'center' }}>
+              <Button style={{ marginEnd: 8 }} mode="contained" onPress={() => console.log('Pressed')}>
+                Camera
+              </Button>
+              <Button style={{ marginStart: 8 }} mode="contained" onPress={() => console.log('Pressed')}>
+                Gallery
+              </Button>
+            </View>
+          )
+        }
         {
           (img.length > 0) && (
             <Image
