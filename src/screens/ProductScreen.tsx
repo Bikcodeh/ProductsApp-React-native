@@ -9,7 +9,7 @@ import { Subheading, TextInput, Button } from 'react-native-paper';
 import { useCategories } from './../hooks/useCategories';
 import { useForm } from './../hooks/useForm';
 import { ProductsContexts } from '../context/ProductsContexts';
-import { launchCamera } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 interface Props extends StackScreenProps<ProductsStackParams, 'ProductScreen'> { }
 
@@ -75,6 +75,19 @@ export const ProductScreen = ({ route, navigation }: Props) => {
     })
   }
 
+  const takePhotoFromGallery = () => {
+    launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.5,
+    }, (resp) => {
+      if (resp.didCancel) return;
+      if (!resp.assets) return;
+      const tempUri = resp.assets[0].uri || undefined
+      setTempUri(tempUri);
+      uploadImage(resp, _id);
+    })
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -105,7 +118,7 @@ export const ProductScreen = ({ route, navigation }: Props) => {
               <Button style={{ marginEnd: 8 }} mode="contained" onPress={takePhoto}>
                 Camera
               </Button>
-              <Button style={{ marginStart: 8 }} mode="contained" onPress={() => console.log('Pressed')}>
+              <Button style={{ marginStart: 8 }} mode="contained" onPress={takePhotoFromGallery}>
                 Gallery
               </Button>
             </View>
